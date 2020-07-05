@@ -32,12 +32,14 @@ function loadTiledMap(path)
                         local xx = x * self.tileset.tilewidth
                         local yy = y * self.tileset.tileheight
                         
+                        if (quad) then
                         love.graphics.draw(
                             self.image,
                             quad,
                             xx,
                             yy
                         )
+                    end
 
                     end
                 end

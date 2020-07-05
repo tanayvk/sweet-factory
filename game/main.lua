@@ -1,21 +1,46 @@
-local gamera = require("vendor/gamera")
+local gamera = require("vendor.gamera")
+local vector = require("vendor.vector")
+
 require("tiled")
+require("controller")
+require("player")
 
 function love.load()
-    width, height = love.graphics.getWidth(), love.graphics.getHeight()
-    player_x, player_y = width / 2, height / 2
-    print(player_x, player_y)
-    player_width, player_height = 50, 50
-    player_speed = 100
+    -- Query basic info
+    width, height = love.graphics.getPixelDimensions()
+    width = love.window.fromPixels(width)
+    height = love.window.fromPixels(height)
 
-    cam = gamera.new(0, 0, 2000, 2000)
+    -- Create physics world
+    love.physics.setMeter(64)
+    world = love.physics.newWorld(0, 0, true)
+
+    -- Add player to the world
+    player = createPlayer(100, 100, 25, 200)
+    player.body = love.physics.newBody(world, player.x, player.y, "dynamic")
+    player.shape = love.physics.newCircleShape(player.radius)
+    player.fixture = love.physics.newFixture(player.body, player.shape)
+
+    -- Create player controller
+    controller_size = height / 6
+    move_controller = createController(
+        50 + controller_size*6/5,
+        height - 50 - controller_size*6/5,
+        {0.2, 0.2, 0.2},
+        {0.2, 0.2, 0.2},
+        controller_size*3/5,
+        controller_size
+    )
 
     map = loadTiledMap("maps/test")
+    cam = gamera.new(0, 0, map.tilewidth * map.width, map.tileheight*map.height)
 end
 
 function love.draw()
     love.graphics.clear(0.8, 0.8, 0.8)
 
+    -- camera should follow player
+    cam:setPosition(player.body:getX(), player.body:getY())
     cam:draw(function (l, t, w, h)
 
     -- Draw the map
@@ -23,31 +48,24 @@ function love.draw()
     map:draw()
 
     -- Draw the player
-    love.graphics.setColor(0.4, 0.6, 0.9)
-    love.graphics.rectangle("fill",
-        player_x - player_width / 2,
-        player_y - player_height / 2,
-        player_width,
-        player_height)
+    drawPlayer(player)
 
     end )
+
+    controllerDraw(move_controller)
 end
 
 function love.update(dt)
-    -- camera should follow player
-    cam:setPosition(player_x, player_y)
+    -- Update game physics
+    world:update(dt)
 
-    -- configure player movement (for testing)
-    if love.keyboard.isDown("up", "w") then
-        player_y = player_y - player_speed * dt
-    end
-    if love.keyboard.isDown("down", "s") then
-        player_y = player_y + player_speed * dt
-    end
-    if love.keyboard.isDown("right", "d") then
-        player_x = player_x + player_speed * dt
-    end
-    if love.keyboard.isDown("left", "a") then
-        player_x = player_x - player_speed * dt
-    end
+    -- Update controller
+    controllerUpdate(move_controller)
+
+    move = controllerGetValue(move_controller)
+    player.body:setLinearVelocity(player.speed * move.x, player.speed * move.y)
+end
+
+function love.mousereleased(x, y, button, istouch, presses )
+    controllerMouseReleased(x, y, button, istouch, presses , move_controller )
 end
