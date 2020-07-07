@@ -1,11 +1,25 @@
+local socket = require "socket"
+ 
+local address, port = "192.168.0.105", 12345
+local updaterate = 0.1 -- how long to wait, in seconds, before requesting an update
+ 
+local t
 local gamera = require("vendor.gamera")
 local vector = require("vendor.vector")
 
 require("tiled")
 require("controller")
 require("player")
+require("physics")
 
 function love.load()
+    -- Set fullscreen on Android
+    if (love.system.getOS() == "Android") then
+        love.window.setFullscreen(true)
+    else
+        love.window.setMode(780, 340)
+    end
+
     -- Query basic info
     width, height = love.graphics.getPixelDimensions()
     width = love.window.fromPixels(width)
@@ -31,9 +45,23 @@ function love.load()
         controller_size*3/5,
         controller_size
     )
+    
+    map = loadTiledMap("maps/test") cam = gamera.new(0, 0, map.tilewidth * map.width, map.tileheight*map.height)
+    cam:setWindow(0, 0, width, height)
 
-    map = loadTiledMap("maps/test")
-    cam = gamera.new(0, 0, map.tilewidth * map.width, map.tileheight*map.height)
+    worldAddMapEdges(map.width*map.tilewidth, map.height*map.tileheight)
+
+    udp = socket.udp()
+    udp:settimeout(0)
+ 
+    udp:setpeername(address, port)
+ 
+    math.randomseed(os.time()) 
+    id = tostring(math.random(99999))
+    local dg = string.format("connect %s", id)
+    udp:send(dg) -- the magic line in question.
+ 
+    t = 0 -- (re)set t to 0
 end
 
 function love.draw()
@@ -64,8 +92,38 @@ function love.update(dt)
 
     move = controllerGetValue(move_controller)
     player.body:setLinearVelocity(player.speed * move.x, player.speed * move.y)
+
+    t = t + dt -- increase t by the deltatime
+
+    --[[
+    if t > updaterate then
+        local dg = string.format("%s %s %f %f", id, 'move', move.x, move.y)
+        udp:send(dg)	
+ 
+        t=t-updaterate -- set t for the next round
+    end
+    --]]
+    dg = string.format("%s update 0 0", id)
+    udp:send(dg)
+    repeat
+        data, msg = udp:receive()
+        print("received", data, msg)
+ 
+        if data then
+            print("received")
+            ent, cmd, parms = data:match("^(%S*) (%S*) (.*)")
+
+            if ent ~= id then
+                local x, y = parms:match("^(%-?[%d.e]*) (%-?[%d.e]*)$")
+                player.body:setLinearVelocity(player.speed * x, player.speed * y)
+            end
+ 
+        elseif msg ~= 'timeout' then 
+            error("Network error: "..tostring(msg))
+        end
+    until not data 
 end
 
-function love.mousereleased(x, y, button, istouch, presses )
-    controllerMouseReleased(x, y, button, istouch, presses , move_controller )
+function love.mousereleased(x, y, button, istouch, presses)
+    controllerMouseReleased(x, y, button, istouch, presses , move_controller)
 end

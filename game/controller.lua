@@ -1,4 +1,5 @@
 local vector = require "vendor.vector"
+
 function createController(x , y , innerColor, outerColor , innerRadius, outerRadius)
     innerColor[4] = 0.5
     outerColor[4] = 0.07
@@ -49,6 +50,5 @@ function controllerUpdate (controller)
             controller.innerX = controller.outerX + (v.x / magnitude ) * controller.outerRadius 
             controller.innerY = controller.outerY + (v.y / magnitude ) * controller.outerRadius
         end
-
     end 
 end
