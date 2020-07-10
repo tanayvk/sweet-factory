@@ -14,7 +14,12 @@ require("controller")
 require("player")
 require("physics")
 
-function scene:load()
+function scene:load(options)
+    -- Should we start the server?
+    if (options and options.server) then
+        serverThread = love.thread.newThread("server.lua")
+        serverThread.start()
+    end
     -- Create physics world
     love.physics.setMeter(64)
     world = love.physics.newWorld(0, 0, true)
@@ -22,7 +27,7 @@ function scene:load()
     -- Add player to the world
     player = createPlayer(100, 100, 25, 200)
     player.body = love.physics.newBody(world, player.x, player.y, "dynamic")
-    player.shape = love.physics.newCircleShape(player.radius)
+    player.shape = love.physics.newRectangleShape(2*player.radius, 2*player.radius)
     player.fixture = love.physics.newFixture(player.body, player.shape)
 
     -- Create player controller
@@ -36,7 +41,7 @@ function scene:load()
         controller_size
     )
     
-    map = loadTiledMap("maps/test") cam = gamera.new(0, 0, map.tilewidth * map.width, map.tileheight*map.height)
+    map = loadTiledMap("maps.test") cam = gamera.new(0, 0, map.tilewidth * map.width, map.tileheight*map.height)
     cam:setWindow(0, 0, width, height)
 
     worldAddMapEdges(map.width*map.tilewidth, map.height*map.tileheight)
@@ -55,22 +60,21 @@ function scene:load()
 end
 
 function scene:draw()
-    love.graphics.clear(0.8, 0.8, 0.8)
+    love.graphics.clear(0, 0, 0, 1)
 
     -- camera should follow player
     cam:setPosition(player.body:getX(), player.body:getY())
     cam:draw(function (l, t, w, h)
-
-    -- Draw the map
-    love.graphics.setColor(1, 1, 1, 1)
-    map:draw()
-
-    -- Draw the player
-    drawPlayer(player)
-
+        -- Draw the map
+        love.graphics.setColor(1, 1, 1, 1)
+        map:draw()
     end )
 
+    --Draw the player
+    drawPlayer(player)
+
     controllerDraw(move_controller)
+
 end
 
 function scene:update(dt)
@@ -97,10 +101,8 @@ function scene:update(dt)
     udp:send(dg)
     repeat
         data, msg = udp:receive()
-        print("received", data, msg)
  
         if data then
-            print("received")
             ent, cmd, parms = data:match("^(%S*) (%S*) (.*)")
 
             if ent ~= id then

@@ -32,7 +32,7 @@ function love.mousereleased(x, y, button, istouch, presses)
     if scene.mousereleased then scene:mousereleased(x, y, button, istouch, presses) end
 end
 
-function playScene(scene_name)
+function playScene(scene_name, options)
     scene = require("scenes." .. scene_name)
-    if scene.load then scene:load() end
+    if scene.load then scene:load(options) end
 end
