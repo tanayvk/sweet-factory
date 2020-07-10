@@ -36,29 +36,43 @@ function controllerGetValue(controller)
     return v
 end
 
-function controllerUpdate (controller)
-    if ( love.mouse.isDown( 1 ) ) then
-        local X, Y = love.mouse.getPosition()
-        local width , height = love.graphics.getWidth() , love.graphics.getHeight() 
-        if ( X >= controller.region.x  and X <= controller.region.x + controller.region.width and Y >= controller.region.y and Y <= controller.region.y + controller.region.height ) then
-            controller.innerColor[4] = 0.9
-            controller.outerColor[4] = 0.2
-            v = vector ( X - controller.outerX , Y - controller.outerY )
-            local magnitude = math.sqrt(v:magSq())
-            if ( magnitude <= controller.outerRadius ) then
-                controller.innerX = X
-                controller.innerY = Y
-            end
-            if ( magnitude > controller.outerRadius ) then
-                controller.innerX = controller.outerX + (v.x / magnitude ) * controller.outerRadius 
-                controller.innerY = controller.outerY + (v.y / magnitude ) * controller.outerRadius
-            end
-        end
-        if ( X < controller.region.x or X > controller.region.x + controller.region.width or Y < controller.region.y or Y > controller.region.y + controller.region.height ) then 
-            controller.innerColor[4] = 0.5
-            controller.outerColor[4] = 0.07
-            controller.innerX = controller.outerX
-            controller.innerY = controller.outerY
+function controllerGetCoordinates ( controller )
+    if ( love.mouse.isDown(1) == true ) then
+        return vector (love.mouse.getX() , love.mouse.getY())
+    end
+    touches = love.touch.getTouches()
+    for i , id in ipairs(touches) do 
+        local X , Y = love.touch.getPosition(id)
+        if ( X >= controller.region.x  and X <= controller.region.x + controller.region.width and Y >= controller.region.y and Y <= controller.region.y + controller.region.height) then
+            return vector( X , Y )
         end    
+    end
+end         
+
+function controllerUpdate (controller)
+  
+    if ( controllerGetCoordinates(controller) == nil ) then
+        controller.innerColor[4] = 0.5
+        controller.outerColor[4] = 0.07
+        controller.innerX = controller.outerX
+        controller.innerY = controller.outerY
     end    
-end
+    if ( not ( controllerGetCoordinates(controller) == nil ) ) then
+        local X , Y = controllerGetCoordinates(controller).x , controllerGetCoordinates(controller).y
+        controller.innerColor[4] = 0.9
+        controller.outerColor[4] = 0.2
+        v = vector ( X - controller.outerX , Y - controller.outerY )
+        local magnitude = math.sqrt(v:magSq())
+        if ( magnitude <= controller.outerRadius ) then
+            controller.innerX = X
+            controller.innerY = Y
+        end
+        if ( magnitude > controller.outerRadius ) then
+            controller.innerX = controller.outerX + (v.x / magnitude ) * controller.outerRadius 
+            controller.innerY = controller.outerY + (v.y / magnitude ) * controller.outerRadius
+        end
+    end
+end    
+        
+        
+    
