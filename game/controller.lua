@@ -38,12 +38,16 @@ end
 
 function controllerGetCoordinates ( controller )
     if ( love.mouse.isDown(1) == true ) then
+        X, Y = love.mouse.getPosition()
+        if ( X >= controller.region.x  and X <= controller.region.x + controller.region.width and Y >= controller.region.y and Y <= controller.region.y + controller.region.height) then
         return vector (love.mouse.getX() , love.mouse.getY())
+            end
     end
     touches = love.touch.getTouches()
     for i , id in ipairs(touches) do 
         local X , Y = love.touch.getPosition(id)
         if ( X >= controller.region.x  and X <= controller.region.x + controller.region.width and Y >= controller.region.y and Y <= controller.region.y + controller.region.height) then
+            print("in the region")
             return vector( X , Y )
         end    
     end
