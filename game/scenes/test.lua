@@ -10,7 +10,7 @@ local gamera = require("vendor.gamera")
 local vector = require("vendor.vector")
 
 require("tiled")
-require("controller")
+require("playerController")
 require("player")
 require("physics")
 
@@ -53,6 +53,8 @@ function scene:load(options)
     player.fixture = love.physics.newFixture(player.body, player.shape)
 
     -- Create player controller
+    playerControllerCreate(player)
+    --[[
     controller_size = height / 6
     move_controller = createController(
         50 + controller_size*6/5,
@@ -62,8 +64,10 @@ function scene:load(options)
         controller_size*3/5,
         controller_size
     )
+    --]]
     
-    map = loadTiledMap("maps.test") cam = gamera.new(0, 0, map.tilewidth * map.width, map.tileheight*map.height)
+    map = loadTiledMap("maps.test")
+    cam = gamera.new(0, 0, map.tilewidth * map.width, map.tileheight*map.height)
     cam:setWindow(0, 0, width, height)
 
     worldAddMapEdges(map.width*map.tilewidth, map.height*map.tileheight)
@@ -84,7 +88,7 @@ function scene:draw()
     --Draw the player
     drawPlayer(player)
 
-    controllerDraw(move_controller)
+    playerControllerDraw( player )
 end
 
 function scene:update(dt)
@@ -92,10 +96,7 @@ function scene:update(dt)
     world:update(dt)
 
     -- Update controller
-    controllerUpdate(move_controller)
-
-    move = controllerGetValue(move_controller)
-    player.body:setLinearVelocity(player.speed * move.x, player.speed * move.y)
+    playerControllerUpdate( player )
 
     if (not serverThread) then
     t = t + dt -- increase t by the deltatime
@@ -126,8 +127,16 @@ function scene:update(dt)
     end
 end
 
-function scene:mousereleased(x, y, button, istouch, presses)
-    controllerMouseReleased(move_controller, x, y)
+function scene:mousepressed(x, y)
+    playerControllerMousePressed( x, y )
+end
+
+function scene:mousereleased(x, y)
+    playerControllerMouseReleased( x, y )
+end
+
+function scene:mousemoved(x, y, dx, dy, istouch)
+    playerControllerMouseMoved(x, y, dx, dy)
 end
 
 return scene

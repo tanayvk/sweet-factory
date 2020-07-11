@@ -20,8 +20,10 @@ end
 function utils.pointInsideRect(point, rect)
     assert(point.x and point.y, "Not a valid point table")
     assert(rect.x and rect.y and rect.width and rect.height, "Not a valid rect table")
+
     if (point.x >= rect.x and point.x <= rect.x + rect.width and
         point.y >= rect.y and point.y <= rect.y + rect.height) then
+        print("yes", point.x, point.y, rect.x, rect.y, rect.width, rect.height)
         return true
     else
         return false

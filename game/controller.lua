@@ -37,7 +37,9 @@ end
 
 function controllerMousePressed(controller, x, y)
     -- Movable controller repositions itself upon mouse press or touch
-    if (not controller.fixed and controllerGetCoordinates(controller)) then
+
+    print("this is the bad guy")
+    if (not controller.fixed and utils.pointInsideRect({x=x, y=y}, controller.region)) then
         controller.outerX = x
         controller.outerY = y
     end
@@ -82,7 +84,8 @@ function controllerGetCoordinates ( controller )
     local touches = love.touch.getTouches()
     for i , id in ipairs(touches) do 
         local touchX, touchY = love.touch.getPosition(id)
-        if (utils.pointInsideRect({x = touchY, y = touchY}, controller.region)) then
+        print("here: ", touchX, touchY)
+        if (utils.pointInsideRect({x = touchX, y = touchY}, controller.region)) then
             return touchX, touchY
         end
     end
