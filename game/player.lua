@@ -2,6 +2,9 @@ utils = require("utils")
 
 function drawPlayer(player)
     cam:draw(function (l, t, w, h)
+    love.graphics.translate(player.body:getX() , player.body:getY())
+    love.graphics.rotate(player.body:getAngle())
+    love.graphics.translate( -player.body:getX() , -player.body:getY())    
     love.graphics.setColor(utils.hexToRGB("#2149db"))
     love.graphics.rectangle("fill", player.body:getX() - 25, player.body:getY() - 25, 50, 50)
     end)
@@ -11,6 +14,7 @@ function drawPlayer(player)
     love.graphics.setColor(utils.hexToRGB("#2149db"))
     love.graphics.rectangle("fill", player.body:getX() - 5, player.body:getY() - 25, 10, 10)
     end)
+    love.graphics.rotate ( -player.body:getAngle() )
 end
 
 function createPlayer(x, y, radius, speed)

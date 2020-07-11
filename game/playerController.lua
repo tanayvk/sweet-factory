@@ -22,15 +22,13 @@ end
 function playerControllerUpdate( player )
     controllerUpdate( aimController )
     local currentAim = controllerGetValue( aimController )
-    player.aimx = player.x + (currentAim.x)*(player.radius * 8 / 10)
-    player.aimy = player.y + (currentAim.y)*(player.radius * 8 / 10)
+    local tanTheta = currentAim.y / currentAim.x 
+    local inclination = math.atan( tanTheta )
+    player.body:setAngle( inclination )
     
-
     controllerUpdate( moveController )
     local currentMove = controllerGetValue( moveController )
-    player.x = player.x + currentMove.x*player.speed
-    player.y = player.y + currentMove.y*player.speed
-    
+    player.body:setLinearVelocity(currentMove.x*player.speed , currentMove.y*player.speed )
 end
 
 function playerControllerMouseReleased ( x , y )
