@@ -14,12 +14,34 @@ require("controller")
 require("player")
 require("physics")
 
+local function get_own_address()
+  local s = assert(socket.udp())
+  assert(s:setpeername("192.168.0.1", 80))
+  local host = s:getsockname()
+  s:close()
+  return host
+end
+
 function scene:load(options)
+    print(get_own_address())
     -- Should we start the server?
     if (options and options.server) then
         serverThread = love.thread.newThread("server.lua")
-        serverThread.start()
+        serverThread:start()
+    else
+        udp = socket.udp()
+        udp:setoption('broadcast', true)
+        udp:setoption('dontroute', true)
+        udp:settimeout(0)
+     
+        math.randomseed(os.time()) 
+        id = tostring(math.random(99999))
+        local dg = string.format("check")
+        udp:sendto(dg, "192.168.0.255", 12345)
+     
+        t = 0 -- (re)set t to 0
     end
+
     -- Create physics world
     love.physics.setMeter(64)
     world = love.physics.newWorld(0, 0, true)
@@ -46,17 +68,6 @@ function scene:load(options)
 
     worldAddMapEdges(map.width*map.tilewidth, map.height*map.tileheight)
 
-    udp = socket.udp()
-    udp:settimeout(0)
- 
-    udp:setpeername(address, port)
- 
-    math.randomseed(os.time()) 
-    id = tostring(math.random(99999))
-    local dg = string.format("connect %s", id)
-    udp:send(dg) -- the magic line in question.
- 
-    t = 0 -- (re)set t to 0
 end
 
 function scene:draw()
@@ -74,7 +85,6 @@ function scene:draw()
     drawPlayer(player)
 
     controllerDraw(move_controller)
-
 end
 
 function scene:update(dt)
@@ -87,37 +97,37 @@ function scene:update(dt)
     move = controllerGetValue(move_controller)
     player.body:setLinearVelocity(player.speed * move.x, player.speed * move.y)
 
+    if (not serverThread) then
     t = t + dt -- increase t by the deltatime
 
     --[[
-    if t > updaterate then
-        local dg = string.format("%s %s %f %f", id, 'move', move.x, move.y)
-        udp:send(dg)	
- 
-        t=t-updaterate -- set t for the next round
-    end
-    --]]
     dg = string.format("%s update 0 0", id)
     udp:send(dg)
     repeat
         data, msg = udp:receive()
  
         if data then
+            print(data)
+            --[[
             ent, cmd, parms = data:match("^(%S*) (%S*) (.*)")
 
             if ent ~= id then
                 local x, y = parms:match("^(%-?[%d.e]*) (%-?[%d.e]*)$")
                 player.body:setLinearVelocity(player.speed * x, player.speed * y)
             end
+            --]]
+            --[[
  
         elseif msg ~= 'timeout' then 
             error("Network error: "..tostring(msg))
         end
     until not data 
+    --]]
+    end
 end
 
 function scene:mousereleased(x, y, button, istouch, presses)
     controllerMouseReleased(x, y, button, istouch, presses , move_controller)
 end
 
-return scene;
+return scene
