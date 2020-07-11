@@ -54,7 +54,7 @@ function scene:load(options)
 
     -- Create player controller
     controller_size = height / 6
-    move_controller = createAimController(
+    move_controller = createController(
         50 + controller_size*6/5,
         height - 50 - controller_size*6/5,
         {0.2, 0.2, 0.2},
@@ -127,7 +127,7 @@ function scene:update(dt)
 end
 
 function scene:mousereleased(x, y, button, istouch, presses)
-    controllerMouseReleased(x, y, button, istouch, presses , move_controller)
+    controllerMouseReleased(move_controller, x, y)
 end
 
 return scene

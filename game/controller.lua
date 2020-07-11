@@ -3,8 +3,10 @@ local vector = require "vendor.vector"
 function createController(x , y , innerColor, outerColor , innerRadius, outerRadius , region )
     innerColor[4] = 0.5
     outerColor[4] = 0.07
-     return 
-     {
+
+    default_region = { x = 0, y = 0, width = width, height = height }
+    return 
+    {
         outerX = x,
         innerX = x, 
         outerY = y,
@@ -13,8 +15,8 @@ function createController(x , y , innerColor, outerColor , innerRadius, outerRad
         innerRadius = innerRadius,
         outerColor = outerColor,
         innerColor = innerColor ,
-        region = region 
-     }
+        region = region or default_region
+    }
 end
 
 function controllerDraw(controller)
@@ -24,7 +26,7 @@ function controllerDraw(controller)
     love.graphics.circle ( "fill" , controller.innerX , controller.innerY ,controller.innerRadius )
 end
 
-function controllerMouseReleased(x, y , controller )
+function controllerMouseReleased(controller, x, y)
     controller.innerColor[4] = 0.5
     controller.outerColor[4] = 0.07
     controller.innerX = controller.outerX
