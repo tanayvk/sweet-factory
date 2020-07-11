@@ -54,7 +54,7 @@ function scene:load(options)
 
     -- Create player controller
     controller_size = height / 6
-    move_controller = createController(
+    move_controller = createAimController(
         50 + controller_size*6/5,
         height - 50 - controller_size*6/5,
         {0.2, 0.2, 0.2},

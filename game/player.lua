@@ -11,11 +11,6 @@ function drawPlayer(player)
     love.graphics.setColor(utils.hexToRGB("#2149db"))
     love.graphics.rectangle("fill", player.body:getX() - 5, player.body:getY() - 25, 10, 10)
     end)
-
-end
-
-function updatePlayer(player)
-
 end
 
 function createPlayer(x, y, radius, speed)
@@ -24,5 +19,7 @@ function createPlayer(x, y, radius, speed)
         y = y,
         radius = radius,
         speed = speed,
+        aimx = x + radius,
+        aimy = y 
     }
 end
