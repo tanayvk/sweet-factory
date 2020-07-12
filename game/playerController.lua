@@ -27,6 +27,21 @@ function playerControllerUpdate( player )
     player.body:setAngle(math.atan2(currentAim.y, currentAim.x))
 end
 
+function playerControllerTouchPressed (id, x , y )
+    controllerTouchPressed (aimController, id, x, y)
+    controllerTouchPressed (moveController, id, x, y)
+end
+
+function playerControllerTouchReleased ( id, x , y )
+    controllerTouchReleased (aimController, id, x, y)
+    controllerTouchReleased (moveController, id, x, y)
+end
+
+function playerControllerTouchMoved ( id, x , y , dx, dy)
+    controllerTouchMoved (aimController, id, x, y, dx, dy)
+    controllerTouchMoved (moveController, id, x, y, dx, dy)
+end
+
 function playerControllerMousePressed ( x , y )
     controllerMousePressed (aimController, x, y)
     controllerMousePressed (moveController, x, y)

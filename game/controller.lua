@@ -1,6 +1,14 @@
 local vector = require "vendor.vector"
 local utils = require "utils"
 
+local function isValidTouchId(touchId)
+    local touches = love.touch.getTouches()
+    for _, id in ipairs(touches) do
+        if (id == touchId) then return true end
+    end
+    return false
+end
+
 function createController(x , y , innerColor, outerColor , innerRadius, outerRadius , fixed, region)
     -- Set the initial alphas
     innerColor[4] = 0.5
@@ -23,7 +31,8 @@ function createController(x , y , innerColor, outerColor , innerRadius, outerRad
         outerColor = outerColor,
         innerColor = innerColor,
         region = region or default_region,
-        fixed = fixed
+        fixed = fixed,
+        touchId = nil,
     }
 end
 
@@ -35,21 +44,44 @@ function controllerDraw(controller)
     love.graphics.circle ("fill", controller.innerX, controller.innerY, controller.innerRadius)
 end
 
-function controllerMousePressed(controller, x, y)
+function controllerTouchPressed(controller, id, x, y)
     -- Movable controller repositions itself upon mouse press or touch
 
-    print("this is the bad guy")
+    if (utils.pointInsideRect({x=x, y=y}, controller.region)) then
+        controller.outerX = x
+        controller.outerY = y
+        controller.touchId = id
+        print("set touch id", id)
+    end
+end
+
+function controllerTouchReleased(controller, id, x, y)
+    -- Reset controller upon mouse or touch release
+    if (id ~= controller.touchId) then return end
+
+    controller.touchId = nil
+    controllerReset(controller)
+end
+
+function controllerMousePressed(controller, x, y)
+    
+    if love.system.getOS() == "Android" then return end
+    -- Movable controller repositions itself upon mouse press or touch
+
     if (not controller.fixed and utils.pointInsideRect({x=x, y=y}, controller.region)) then
         controller.outerX = x
         controller.outerY = y
     end
+    
 end
 
 function controllerMouseReleased(controller, x, y)
+    if love.system.getOS() == "Android" then return end
     -- Reset controller upon mouse or touch release
     if (controllerGetCoordinates(controller)) then
         controllerReset(controller)
     end
+    
 end
 
 function controllerGetValue(controller)
@@ -74,6 +106,14 @@ function controllerGetCoordinates ( controller )
     -- Return the position of the first mouse down or touch coordinate which lies inside
     -- the controller region
 
+    if (controller.touchId ~= nil and isValidTouchId(controller.touchId)) then
+        local touchX, touchY = love.touch.getPosition(controller.touchId)
+        if (touchX) then return touchX, touchY end
+    end
+
+    if love.system.getOS() == "Android" then return false end
+
+    
     if ( love.mouse.isDown(1) == true ) then
         local mouseX, mouseY = love.mouse.getPosition()
         if (utils.pointInsideRect({x = mouseX, y = mouseY}, controller.region)) then
@@ -81,20 +121,30 @@ function controllerGetCoordinates ( controller )
         end
     end
 
-    local touches = love.touch.getTouches()
-    for i , id in ipairs(touches) do 
-        local touchX, touchY = love.touch.getPosition(id)
-        print("here: ", touchX, touchY)
-        if (utils.pointInsideRect({x = touchX, y = touchY}, controller.region)) then
-            return touchX, touchY
-        end
-    end
-
     -- No coordinate
     return false
 end         
 
+function controllerTouchMoved(controller, id, x, y, dx, dy)
+    if (not controller.fixed and isValidTouchId(controller.touchId) and id == controller.touchId) then
+        local controllerX, controllerY = controllerGetCoordinates(controller)
+        
+        if (not controllerX) then
+            return end
+
+        local v = vector ( controllerX - controller.outerX , controllerY - controller.outerY )
+        local magnitude = v:getmag()
+
+        if ( magnitude >= controller.outerRadius + 15 ) then
+            controller.outerX = controller.outerX + dx
+            controller.outerY = controller.outerY + dy
+        end
+     end
+end
+
 function controllerMouseMoved(controller, x, y, dx, dy)
+    if love.system.getOS() == "Android" then return end
+    
     if (not controller.fixed) then
         local controllerX, controllerY = controllerGetCoordinates(controller)
         

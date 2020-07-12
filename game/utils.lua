@@ -23,7 +23,6 @@ function utils.pointInsideRect(point, rect)
 
     if (point.x >= rect.x and point.x <= rect.x + rect.width and
         point.y >= rect.y and point.y <= rect.y + rect.height) then
-        print("yes", point.x, point.y, rect.x, rect.y, rect.width, rect.height)
         return true
     else
         return false

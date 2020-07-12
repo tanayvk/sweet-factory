@@ -106,8 +106,7 @@ function scene:update(dt)
     udp:send(dg)
     repeat
         data, msg = udp:receive()
- 
-        if data then
+ if data then
             print(data)
             --[[
             ent, cmd, parms = data:match("^(%S*) (%S*) (.*)")
@@ -125,6 +124,18 @@ function scene:update(dt)
     until not data 
     --]]
     end
+end
+
+function scene:touchpressed(id, x, y, dx, dy, pressure)
+    playerControllerTouchPressed(id, x, y)
+end
+
+function scene:touchreleased(id, x, y, dx, dy, pressure)
+    playerControllerTouchReleased(id, x, y)
+end
+
+function scene:touchmoved(id, x, y, dx, dy, pressure)
+    playerControllerTouchMoved(id, x, y, dx, dy)
 end
 
 function scene:mousepressed(x, y)

@@ -36,6 +36,18 @@ function love.mousemoved(x, y, dx, dy, istouch)
     if scene.mousemoved then scene:mousemoved(x, y, dx, dy) end
 end
 
+function love.touchpressed(id, x, y, dx, dy, pressure)
+    if scene.touchpressed then scene:touchpressed(id, x, y, dx, dy, pressure) end
+end
+
+function love.touchreleased(id, x, y, dx, dy, pressure)
+    if scene.touchreleased then scene:touchreleased(id, x, y, dx, dy, pressure) end
+end
+
+function love.touchmoved(id, x, y, dx, dy, pressure)
+    if scene.touchmoved then scene:touchmoved(id, x, y, dx, dy, pressure) end
+end
+
 function playScene(scene_name, options)
     scene = require("scenes." .. scene_name)
     if scene.load then scene:load(options) end
