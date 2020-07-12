@@ -5,7 +5,6 @@ local socket = require "socket"
 local address, port = "192.168.0.105", 12345
 local updaterate = 0.1 -- how long to wait, in seconds, before requesting an update
  
-local t
 local gamera = require("vendor.gamera")
 local vector = require("vendor.vector")
 
@@ -14,32 +13,15 @@ require("playerController")
 require("player")
 require("physics")
 
-local function get_own_address()
-  local s = assert(socket.udp())
-  assert(s:setpeername("192.168.0.1", 80))
-  local host = s:getsockname()
-  s:close()
-  return host
-end
-
 function scene:load(options)
-    print(get_own_address())
     -- Should we start the server?
+    network = require "network"
+    network:init()
     if (options and options.server) then
-        serverThread = love.thread.newThread("server.lua")
-        serverThread:start()
+        isServer = true
+        network:startServer()
     else
-        udp = socket.udp()
-        udp:setoption('broadcast', true)
-        udp:setoption('dontroute', true)
-        udp:settimeout(0)
-     
-        math.randomseed(os.time()) 
-        id = tostring(math.random(99999))
-        local dg = string.format("check")
-        udp:sendto(dg, "192.168.0.255", 12345)
-     
-        t = 0 -- (re)set t to 0
+        network:startClient()
     end
 
     -- Create physics world
@@ -47,31 +29,15 @@ function scene:load(options)
     world = love.physics.newWorld(0, 0, true)
 
     -- Add player to the world
-    player = createPlayer(100, 100, 25, 200)
-    player.body = love.physics.newBody(world, player.x, player.y, "dynamic")
-    player.shape = love.physics.newRectangleShape(2*player.radius, 2*player.radius)
-    player.fixture = love.physics.newFixture(player.body, player.shape)
-
+    player = createPlayer(100, 100, 25, 250)
     -- Create player controller
     playerControllerCreate(player)
-    --[[
-    controller_size = height / 6
-    move_controller = createController(
-        50 + controller_size*6/5,
-        height - 50 - controller_size*6/5,
-        {0.2, 0.2, 0.2},
-        {0.2, 0.2, 0.2},
-        controller_size*3/5,
-        controller_size
-    )
-    --]]
     
     map = loadTiledMap("maps.test")
     cam = gamera.new(0, 0, map.tilewidth * map.width, map.tileheight*map.height)
-    cam:setWindow(0, 0, width, height)
+    cam:setWindow(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
     worldAddMapEdges(map.width*map.tilewidth, map.height*map.tileheight)
-
 end
 
 function scene:draw()
@@ -92,38 +58,14 @@ function scene:draw()
 end
 
 function scene:update(dt)
-    -- Update game physics
-    world:update(dt)
+    -- Tick server
+    network:tick(dt)
 
     -- Update controller
     playerControllerUpdate( player )
 
-    if (not serverThread) then
-    t = t + dt -- increase t by the deltatime
-
-    --[[
-    dg = string.format("%s update 0 0", id)
-    udp:send(dg)
-    repeat
-        data, msg = udp:receive()
- if data then
-            print(data)
-            --[[
-            ent, cmd, parms = data:match("^(%S*) (%S*) (.*)")
-
-            if ent ~= id then
-                local x, y = parms:match("^(%-?[%d.e]*) (%-?[%d.e]*)$")
-                player.body:setLinearVelocity(player.speed * x, player.speed * y)
-            end
-            --]]
-            --[[
- 
-        elseif msg ~= 'timeout' then 
-            error("Network error: "..tostring(msg))
-        end
-    until not data 
-    --]]
-    end
+    -- Update game physics
+    world:update(dt)
 end
 
 function scene:touchpressed(id, x, y, dx, dy, pressure)

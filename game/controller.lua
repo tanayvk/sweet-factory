@@ -61,6 +61,8 @@ function controllerTouchReleased(controller, id, x, y)
 
     controller.touchId = nil
     controllerReset(controller)
+
+    if controller.onRelease then controller.onRelease() end
 end
 
 function controllerMousePressed(controller, x, y)
@@ -81,7 +83,8 @@ function controllerMouseReleased(controller, x, y)
     if (controllerGetCoordinates(controller)) then
         controllerReset(controller)
     end
-    
+
+    if controller.onRelease then controller.onRelease() end
 end
 
 function controllerGetValue(controller)
@@ -135,7 +138,7 @@ function controllerTouchMoved(controller, id, x, y, dx, dy)
         local v = vector ( controllerX - controller.outerX , controllerY - controller.outerY )
         local magnitude = v:getmag()
 
-        if ( magnitude >= controller.outerRadius + 15 ) then
+        if ( magnitude >= controller.outerRadius*6/5 ) then
             controller.outerX = controller.outerX + dx
             controller.outerY = controller.outerY + dy
         end
@@ -154,7 +157,7 @@ function controllerMouseMoved(controller, x, y, dx, dy)
         local v = vector ( controllerX - controller.outerX , controllerY - controller.outerY )
         local magnitude = v:getmag()
 
-        if ( magnitude >= controller.outerRadius + 15 ) then
+        if ( magnitude >= controller.outerRadius*6/5 ) then
             controller.outerX = controller.outerX + dx
             controller.outerY = controller.outerY + dy
         end

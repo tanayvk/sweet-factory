@@ -12,7 +12,6 @@ function Network:init()
 end
 
 function Network:tick(dt)
-
 	if self.server then
 		self.server.tick(dt)
 	end
@@ -63,7 +62,6 @@ function Network:startServer()
 					udp:sendto("acceptjoin", msg_or_ip, port_or_nil)
 					print("server: accepted client at " .. msg_or_ip)
 				end
-				
 			else
 				print("NETWORK ERROR: " .. tostring(msg_or_ip))
 			end
@@ -124,7 +122,7 @@ function Network:startClient()
 					print("client ip: " .. tostring(_ip) .. " port: " .. tostring(_port))
 				end
 				
-			else--if err_msg ~= "timeout" then
+			elseif err_msg ~= "timeout" then
 				print("client: Network error (2): " .. tostring(msg_or_nil))
 			end
 		until not datagram

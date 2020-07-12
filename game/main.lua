@@ -5,13 +5,12 @@ function love.load()
     if (love.system.getOS() == "Android") then
         love.window.setFullscreen(true)
     else
-        love.window.setMode(780, 340)
+        love.window.setMode(780, 360)
     end
 
     -- Query basic info
-    width, height = love.graphics.getPixelDimensions()
-    width = love.window.fromPixels(width)
-    height = love.window.fromPixels(height)
+    width, height = love.graphics.getWidth(), love.graphics.getHeight()
+    print(width, height)
 
     playScene("menu")
 end
